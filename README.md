@@ -1,10 +1,10 @@
 <!-- spell-check: ignore:start -->
 <!-- badges: start -->
-![GitHub](https://img.shields.io/github/license/inbo/mbag-bodem)
-![GitHub repo size](https://img.shields.io/github/repo-size/inbo/mbag-bodem)
+![GitHub](https://img.shields.io/github/license/inbo/mbag-integrated)
+![GitHub repo size](https://img.shields.io/github/repo-size/inbo/mbag-integrated)
 <!-- badges: end -->
 
-# MBAG - Bodem
+# MBAG - Integrated
 
 [Cartuyvels, Emma![ORCID logo](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png)](https://orcid.org/0000-0001-7856-6360)[^aut][^cre][^inbo.be]
 [Langeraert, Ward![ORCID logo](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png)](https://orcid.org/0000-0002-5900-8109)[^aut][^inbo.be]
@@ -23,7 +23,7 @@ Research Institute for Nature and Forest (INBO)[^cph][^fnd]
 <!-- community: inbo -->
 
 <!-- description: start -->
-Dit pilootproject maakt deel uit van de opstart van het Meetnet Biodiversiteit Agrarisch Gebied (MBAG). INBO zal in samenwerking met ILVO een toestandsmeetnet voor bodembiodiversiteit opstarten. We onderzoeken hiervoor de bodemstalen genomen via het bodemkoolstofmeetnet (Cmon).
-
-Op 450 reeds ingevroren Cmon stalen voeren we een eDNA metabarcoding analyse uit. Hiervoor worden internationale protocols (LUCAS, SoilBON) gebruikt zodat we de data van bacteriën, schimmels en macro-invertebraten kunnen vergelijken.
+De toestand van de biodiversiteit in het agrarisch gebied gaat achteruit, met negatieve gevolgen voor de biodiversiteit buiten het landbouwgebied, voor de landbouw zelf en voor de veerkracht tegenover klimaatverandering. Met het Meetnet Biodiversiteit Agrarisch Gebied trachten we deze toestand beter op te volgen, als basis voor gerichte maatregelen om de achteruitgang te keren.
+Dit deelproject maakt deel uit van de opstart van het Meetnet Biodiversiteit Agrarisch Gebied (MBAG). Het heeft tot doel om alle taken te bundelen die vallen onder de ruime noemer van statistische ondersteuning voor de vier monitoringmodules in het MBAG Toestandsmeetnet die focussen op de biotische component: vogels, insecten (pollinatoren), bodembiodiversiteit en vegetaties.
+De doelstellingen zijn: (1) op elkaar afstemmen van de verschillende monitoringmodules, (2) ontwikkelen van de individuele meetnetmodules in geval dit nog niet gebeurd is, (3) geïntegreerde data-analyse en rapportering van eerste resultaten.
 <!-- description: end -->
