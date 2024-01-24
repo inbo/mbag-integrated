@@ -33,7 +33,7 @@ conflicted::conflicts_prefer(dplyr::select)
 conflicted::conflicts_prefer(dplyr::lag)
 
 # Source
-source(here("source", "R", "calc_parcel_size.R"))
+source(here("source", "scripts", "calc_parcel_size.R"))
 ```
 
 # Vraag
