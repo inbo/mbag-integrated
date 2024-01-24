@@ -27,6 +27,7 @@ library(tidyverse)
 library(INBOtheme)
 library(sf)
 library(mapview)
+library(qgisprocess)
 
 conflicted::conflicts_prefer(dplyr::filter)
 conflicted::conflicts_prefer(dplyr::select)
@@ -259,8 +260,6 @@ We gebruiken de volgende kaartlagen:
 -   De oude perimeter van SBP Grauwe kiekendief (in gebruik van 2018 t/m 2022).
 -   SPB's andere soorten (download 2023-02-14): <https://www.vlaanderen.be/datavindplaats/catalogus/soortenbeschermingsprogrammas>
 
-De kaartlagen bevinden zich in de MAS drive map onder layers \> perimeters SBPs
-
 Deze kaartlagen, behalve SBP akkervogels 2022, werden tot 1 bestand samengevoegd met volgende code:
 
     layer1 <- st_read("C:/Users/ward_langeraert/Downloads/INBO.A.4291_bijlage1/Kerngebied_SBP_2_INBO.shp")
@@ -283,7 +282,7 @@ Deze kaartlagen, behalve SBP akkervogels 2022, werden tot 1 bestand samengevoegd
     st_write(layer_sbp,
              path_to_sbp_akkervogels("sbp_overige_soorten.shp"))
 
-We berekenen eerst perceelsgroottes voor elk soortbeschermingsgebied apart.
+We berekenen eerst perceelsgroottes voor percelen van 2022-2023 die overlappen met soortbeschermingsgebieden voor elke soort apart.
 
 ```{r}
 sbp_overig <- 
@@ -301,14 +300,55 @@ sbp_akkervogels <-
   select(soort) %>%
   st_transform(crs = 31370)
 
-sbp_total <- bind_rows(sbp_overig, sbp_akkervogels)
+sbp_total <- bind_rows(sbp_overig, sbp_akkervogels) %>%
+  group_by(soort) %>%
+  summarise(.groups = "drop")
 
 mapview(sbp_total, zcol = "soort", layer = "soort(engroep)")
 ```
 
-...
+```{r}
+# Select parcel layers 2022-2023
+parcels_grouped_sf <- bind_rows(parcels_grouped_list[["2022"]],
+                                parcels_grouped_list[["2023"]]) %>%
+  mutate(ID = paste(ID, jaar, sep = "_"))
 
-We berekenen ook de perceelsgroottes voor akkergerelateerde soortbeschermingsgebiedlagen samen.
+# Make intersection between parcels and SBP layers
+specs <- sort(unique(sbp_total$soort))
+out_list_sbp <- vector("list", length = length(specs) * 2)
+i <- 0
+for (spec in specs) {
+  for (year in 2022:2023) {
+    i <- i + 1
+    input_sf <- sbp_total %>%
+      filter(soort == spec)
+    overlay_sf <- parcels_grouped_sf %>%
+      filter(jaar == year)
+    
+    print(paste0("Start intersectie kaartlagen: ", spec, " - ", year))
+    intersect_sbp <- qgis_run_algorithm(
+      algorithm = "native:intersection",
+      INPUT = input_sf,
+      OVERLAY = overlay_sf)
+    intersect_sbp_sf <- st_as_sf(intersect_sbp)
+    
+    # Select parcels that overlap SBP
+    select_ids <- intersect_sbp_sf %>%
+      st_drop_geometry() %>%
+      pull(ID)
+    sbp_parcels <- overlay_sf %>%
+      st_drop_geometry() %>%
+      filter(ID %in% select_ids) %>%
+      mutate(soort = spec)
+    
+    out_list_sbp[[i]] <- sbp_parcels
+  }
+}
+sbp_parcel_df <- do.call(rbind.data.frame, out_list_sbp)
+```
+
+
+We berekenen ook de perceelsgroottes voor percelen van 2022-2023 die overlappen met het totaal van akkergerelateerde soortbeschermingsgebiedlagen.
 Als soortbeschermingsgebiedlagen voor akkergebieden gebruiken we perimeter SBP akkervogels, SBP grauwe kiekendief, SBP bruine kiekendief, SBP zomertortel en SBP hamster.
 
 ```{r}
@@ -329,4 +369,79 @@ sbp_akker_union <- sbp_akker_sep %>%
 mapview(sbp_akker_union)
 ```
 
-...
+
+
+```{r}
+# Select parcel layers 2022-2023
+parcels_grouped_sf <- bind_rows(parcels_grouped_list[["2022"]],
+                                parcels_grouped_list[["2023"]]) %>%
+  mutate(ID = paste(ID, jaar, sep = "_"))
+
+# Make intersection between parcels and SBP layer
+file_intersect_akker <- file.path(cache_path, "intersect_sbp_akker.rds")
+if (file.exists(file_intersect_akker)) {
+  intersect_sbp_akker <- readRDS(file_intersect_akker)
+} else {
+  intersect_sbp_akker <- st_intersection(sbp_akker_union, parcels_grouped_sf)
+  saveRDS(intersect_sbp_akker, file_intersect_akker)
+}
+
+intersect_sbp_akker <- qgis_run_algorithm(
+  algorithm = "native:intersection",
+  INPUT = sbp_akker_union,
+  OVERLAY = parcels_grouped_sf)
+
+# Select parcels that overlap SBP
+select_ids <- intersect_sbp_akker %>%
+  st_drop_geometry() %>%
+  pull(ID)
+sbp_akker_parcels <- parcels_grouped_sf %>%
+  filter(ID %in% select_ids)
+```
+
+Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar voor percelen die overlappen met akker SBP's:
+
+```{r}
+sbp_akker_parcels_summary <- sbp_akker_parcels %>%
+  group_by(jaar) %>%
+  summarise(
+    min = min(area_ha),
+    Q10 = quantile(area_ha, 0.1),
+    Q20 = quantile(area_ha, 0.2),
+    Q30 = quantile(area_ha, 0.3),
+    Q40 = quantile(area_ha, 0.4),
+    Q50 = quantile(area_ha, 0.5),
+    Q60 = quantile(area_ha, 0.6),
+    Q70 = quantile(area_ha, 0.7),
+    Q80 = quantile(area_ha, 0.8),
+    Q90 = quantile(area_ha, 0.9),
+    max = max(area_ha),
+    gemiddelde = mean(area_ha),
+    st_dev = sd(area_ha)
+  )
+
+sbp_akker_parcels_summary %>%
+  kable(digits = 3)
+```
+
+```{r}
+sbp_akker_parcels %>%
+  group_by(jaar) %>%
+  summarise(
+    Q25 = quantile(area_ha, 0.25),
+    mediaan = quantile(area_ha, 0.5),
+    Q75 = quantile(area_ha, 0.75),
+    gemiddelde = mean(area_ha)) %>%
+  ungroup() %>%
+  pivot_longer(-jaar, names_to = "statistiek", values_to = "waarde") %>%
+  mutate(statistiek = factor(
+    statistiek,
+    levels = c("Q25", "mediaan", "gemiddelde", "Q75")
+    )) %>%
+  ggplot(aes(x = jaar, y  = waarde, colour = statistiek)) +
+    geom_point() +
+    geom_line() +
+    labs(x = "",
+         y = "perceelsgrootte (ha)") +
+    scale_y_continuous(limits = c(0, NA))
+```
