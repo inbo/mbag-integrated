@@ -60,7 +60,7 @@ for (i in seq_along(years)) {
   # create path variable
   year <- years[i]
   path <- paste("Landbouwgebruikspercelen", year, sep = "_")
-  
+
   # read layer
   layer_sf <- st_read(
            file.path(
@@ -73,7 +73,7 @@ for (i in seq_along(years)) {
     layer_sf <- layer_sf %>%
       st_transform(crs = 31370)
   }
-    
+
   layer_list[[i]] <- layer_sf %>%
     mutate(jaar = year)
 }
@@ -89,7 +89,7 @@ detail <- c("xmin" = 200000,
             "xmax" = 202000,
             "ymax" = 175000)
 
-detail_sf <- tibble(geometry = st_as_sfc(st_bbox(detail))) %>% 
+detail_sf <- tibble(geometry = st_as_sfc(st_bbox(detail))) %>%
   st_as_sf() %>%
   st_set_crs(31370)
 
@@ -138,15 +138,15 @@ if (file.exists(file)) {
 } else {
   parcels_grouped_list <- lapply(layer_list, function(sf) {
     year <- unique(sf$jaar)
-    
+
     print(paste("Start samenvoegen percelen", year))
     out <- calc_parcel_size(sf) %>%
       mutate(jaar = year)
     print(paste("Einde samenvoegen percelen", year))
-    
+
     return(out)
     })
-  
+
   saveRDS(parcels_grouped_list, file)
 }
 
@@ -195,7 +195,7 @@ parcels_grouped_df %>%
          y = paste0("proportie aantal percelen\n",
                    min(years), "-", max(years))) +
     scale_y_continuous(limits = c(0, NA)) +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))  
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r}
@@ -225,7 +225,7 @@ parcels_grouped_summary <- parcels_grouped_final %>%
   )
 
 parcels_grouped_summary %>%
-  kable( digits = 3)
+  kable(digits = 3)
 ```
 
 ```{r}
@@ -249,3 +249,6 @@ parcels_grouped_final %>%
          y = "perceelsgrootte (ha)") +
     scale_y_continuous(limits = c(0, NA))
 ```
+
+## Soortbeschermingsgebieden
+
