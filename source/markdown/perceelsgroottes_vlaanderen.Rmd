@@ -137,8 +137,10 @@ if (file.exists(file)) {
   parcels_grouped_list <- lapply(layer_list, function(sf) {
     year <- unique(sf$jaar)
     
+    print(paste("Start samenvoegen percelen", year))
     calc_parcel_size(sf) %>%
       mutate(jaar = year)
+    print(paste("Einde samenvoegen percelen", year))
     })
   
   saveRDS(parcels_grouped_list, file)
