@@ -42,25 +42,41 @@ Met 'feitelijke' percelen bedoelen we dat aangrenzende percelen met hetzelfde ge
 
 # Kaartlagen
 
+```{r}
+years <- 2018:2023
+```
+
 Kaartlagen van landbouwgebruikspercelen zijn gedownload via [landbouwcijfers.vlaanderen.be](https://landbouwcijfers.vlaanderen.be/open-geodata-landbouwgebruikspercelen).
-We zullen zowel berekeningen doen o.b.v. de kaarten van 2022 en 2023.
+We zullen berekeningen doen o.b.v. de kaarten van `r min(years)` t/m `r max(years)`.
 De kaart van 2023 is nog niet finaal is kan dus nog fouten kan bevatten (extractie 04-12-2023).
 
 
 ```{r}
-# Load parcel file of 2022, 2023
-years <- 2022:2023
+# Load parcel files
+layer_list <- vector("list", length = length(years))
 
-for (year in years) {
+for (i in seq_along(years)) {
+  # create path variable
+  year <- years[i]
   path <- paste("Landbouwgebruikspercelen", year, sep = "_")
-  assign(paste("lbg_layer", year, sep = "_"),
-         st_read(
+  
+  # read layer
+  layer_sf <- st_read(
            file.path(
              "data", "landbouwgebruikspercelen", path, paste0(path, ".shp"))
-             ) %>%
-           st_transform(crs = 31370)
-  )
+             )
+  if (is.na(st_crs(layer_sf))) {
+    layer_sf <- layer_sf %>%
+      st_set_crs(31370)
+  } else {
+    layer_sf <- layer_sf %>%
+      st_transform(crs = 31370)
+  }
+    
+  layer_list[[i]] <- layer_sf %>%
+    mutate(jaar = year)
 }
+names(layer_list) <- years
 ```
 
 Onderstaand voorbeeld toont hoe we van percelen naar 'feitelijke' percelen gaan.
@@ -82,7 +98,7 @@ print(detail)
 De originele kaart ziet er uit als volgt:
 
 ```{r}
-test_layer <- st_crop(lbg_layer_2022, detail_sf) %>%
+test_layer <- st_crop(layer_list[["2022"]], detail_sf) %>%
   select(REF_ID, GWSNAM_H)
 
 # Visualise
@@ -108,17 +124,34 @@ mapview(test_layer_grouped, zcol = "GWSNAM_H", legend = FALSE)
 # Berekening perceelsgroottes en statistieken
 ## Vlaanderen
 
-```{r, cache=TRUE}
-parcels_grouped_2022 <- calc_parcel_size(lbg_layer_2022) %>%
-  mutate(jaar = 2022)
-parcels_grouped_2023 <- calc_parcel_size(lbg_layer_2023) %>%
-  mutate(jaar = 2023)
+```{r}
+# Create cache directory
+cache_path <- "source/markdown/perceelsgroottes_vlaanderen_cache"
+dir.create(cache_path, showWarnings = FALSE)
+
+# Read or save grouped parcels object
+file <- file.path(cache_path, "parcels_grouped_list.rds")
+if (file.exists(file)) {
+  parcels_grouped_list <- readRDS(file)
+} else {
+  parcels_grouped_list <- lapply(layer_list, function(sf) {
+    year <- unique(sf$jaar)
+    
+    calc_parcel_size(sf) %>%
+      mutate(jaar = year)
+    })
+  
+  saveRDS(parcels_grouped_list, file)
+}
+
+# List to one single dataframe
+parcels_grouped_df <- do.call(rbind.data.frame, parcels_grouped_list)
 ```
 
-Samenvattende statistieken:
+Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar:
 
 ```{r}
-bind_rows(parcels_grouped_2022, parcels_grouped_2023) %>%
+parcels_grouped_df %>%
   st_drop_geometry() %>%
   group_by(jaar) %>%
   summarise(
