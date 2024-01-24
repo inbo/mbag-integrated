@@ -100,7 +100,7 @@ De originele kaart ziet er uit als volgt:
 
 ```{r}
 test_layer <- st_crop(layer_list[["2022"]], detail_sf) %>%
-  select(REF_ID, GWSNAM_H)
+  select(REF_ID, GWSNAM_H, GWSGRPH_LB)
 
 # Visualise
 mapview(test_layer, zcol = "GWSNAM_H", legend = FALSE)
@@ -112,7 +112,7 @@ We groeperen aangrenzende percelen met dezelfde hoofdteelt:
 # Join neighbouring polygons by main crop
 test_layer_grouped <- test_layer %>%
   filter(!is.na(GWSNAM_H)) %>%
-  group_by(GWSNAM_H) %>%
+  group_by(GWSNAM_H, GWSGRPH_LB) %>%
   summarise() %>%
   st_cast("MULTIPOLYGON") %>%
   st_cast("POLYGON") %>%
@@ -121,6 +121,7 @@ test_layer_grouped <- test_layer %>%
 # Visualise
 mapview(test_layer_grouped, zcol = "GWSNAM_H", legend = FALSE)
 ```
+
 
 # Berekening perceelsgroottes en statistieken
 ## Vlaanderen
@@ -149,6 +150,22 @@ if (file.exists(file)) {
 
 # List to one single dataframe
 parcels_grouped_df <- do.call(rbind.data.frame, parcels_grouped_list)
+```
+
+De kaartlagen bevatten meerdere gewassen die in groepen zijn opgedeeld.
+Ter exploratie bekijken we de mediaan van de oppervlaktes per gewasgroep (in ha).
+
+```{r}
+parcels_grouped_df %>%
+  group_by(GWSGRPH_LB) %>%
+  summarise(area_ha = median(area_ha)) %>%
+  ungroup() %>%
+  mutate(GWSGRPH_LB = reorder(GWSGRPH_LB, area_ha)) %>%
+  ggplot(aes(x = GWSGRPH_LB, y = area_ha)) +
+    geom_boxplot() +
+    labs(x = "",
+         y = "mediaan oppervlakte\n'feitelijke' percelen (ha)") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar:
