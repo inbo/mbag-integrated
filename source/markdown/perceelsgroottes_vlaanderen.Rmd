@@ -29,9 +29,10 @@ conflicted::conflicts_prefer(dplyr::select)
 library(tidyverse)
 library(INBOtheme)
 library(sf)
+library(mapview)
 
 # Source
-source(here("source", "R", "calc_perceelsgrootte_by_year.R"))
+source(here("source", "R", "calc_parcel_size.R"))
 ```
 
 # Vraag
@@ -44,6 +45,68 @@ Met 'feitelijke' percelen bedoelen we dat aangrenzende percelen met hetzelfde ge
 Kaartlagen van landbouwgebruikspercelen zijn gedownload via [landbouwcijfers.vlaanderen.be](https://landbouwcijfers.vlaanderen.be/open-geodata-landbouwgebruikspercelen).
 We zullen zowel berekeningen doen o.b.v. de kaart van 2022 als de kaart van 2023 omdat de kaart van 2023 nog niet finaal is en dus nog fouten kan bevatten (extractie 04-12-2023).
 
+
+```{r}
+# Load parcel file of 2022, 2023
+years <- 2022:2023
+
+for (year in years) {
+  path <- paste("Landbouwgebruikspercelen", year, sep = "_")
+  assign(paste("lbg_layer", year, sep = "_"),
+         st_read(
+           file.path(
+             "data", "landbouwgebruikspercelen", path, paste0(path, ".shp"))
+             ) %>%
+           st_transform(crs = 31370)
+  )
+}
+```
+
+Onderstaand voorbeeld toont hoe we van percelen naar 'feitelijke' percelen gaan.
+We selecteren een detail van de kaart van 2022.
+
+```{r}
+detail <- c("xmin" = 200000,
+            "ymin" = 173000,
+            "xmax" = 202000,
+            "ymax" = 175000)
+
+detail_sf <- tibble(geometry = st_as_sfc(st_bbox(detail))) %>% 
+  st_as_sf() %>%
+  st_set_crs(31370)
+
+print(detail)
+```
+
+De originele kaart ziet er uit als volgt:
+
+```{r}
+test_layer <- st_crop(lbg_layer_2022, detail_sf) %>%
+  select(REF_ID, GWSNAM_H)
+
+# Visualise
+mapview(test_layer, zcol = "GWSNAM_H", legend = FALSE)
+```
+
+We groeperen aangrenzende percelen met dezelfde hoofdteelt:
+
+```{r}
+# Join neighbouring polygons by main crop
+test_layer_grouped <- test_layer %>%
+  filter(!is.na(GWSNAM_H)) %>%
+  group_by(GWSNAM_H) %>%
+  summarise() %>%
+  st_cast("MULTIPOLYGON") %>%
+  st_cast("POLYGON") %>%
+  ungroup()
+
+# Visualise
+mapview(test_layer_grouped, zcol = "GWSNAM_H", legend = FALSE)
+```
+
 # Berekening perceelsgroottes en statistieken
+## Vlaanderen
 
-
+```{r}
+parcel_stats <- calc_parcel_size(test_layer)
+```
