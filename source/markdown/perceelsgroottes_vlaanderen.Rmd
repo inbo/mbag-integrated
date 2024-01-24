@@ -114,3 +114,29 @@ parcels_grouped_2022 <- calc_parcel_size(lbg_layer_2022) %>%
 parcels_grouped_2023 <- calc_parcel_size(lbg_layer_2023) %>%
   mutate(jaar = 2023)
 ```
+
+Samenvattende statistieken:
+
+```{r}
+bind_rows(parcels_grouped_2022, parcels_grouped_2023) %>%
+  st_drop_geometry() %>%
+  group_by(jaar) %>%
+  summarise(
+    min = min(area_ha),
+    Q10 = quantile(area_ha, 0.1),
+    Q20 = quantile(area_ha, 0.2),
+    Q30 = quantile(area_ha, 0.3),
+    Q40 = quantile(area_ha, 0.4),
+    Q50 = quantile(area_ha, 0.5),
+    Q60 = quantile(area_ha, 0.6),
+    Q70 = quantile(area_ha, 0.7),
+    Q80 = quantile(area_ha, 0.8),
+    Q90 = quantile(area_ha, 0.9),
+    max = max(area_ha),
+    gemiddelde = mean(area_ha),
+    st_dev = sd(area_ha)
+  ) %>% kable( digits = 3)
+```
+
+
+
