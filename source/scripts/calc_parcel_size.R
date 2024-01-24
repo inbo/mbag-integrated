@@ -14,7 +14,7 @@ calc_parcel_size <- function(layer) {
 
   out_sf <- parcels_grouped %>%
     # Give new IDs
-    rownames_to_column(var = "ID") %>%
+    tibble::rownames_to_column(var = "ID") %>%
 
     # Calculate area
     mutate(area_m2 = st_area(.data$geometry),
