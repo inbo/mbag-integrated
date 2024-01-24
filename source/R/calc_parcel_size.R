@@ -2,7 +2,7 @@ calc_parcel_size <- function(layer) {
   require(dplyr)
   require(sf)
 
-  out_df_year <- layer %>%
+  parcels_grouped <- layer %>%
     filter(!is.na(GWSNAM_H)) %>%
 
     # Join neighbouring polygons by main crop
@@ -10,16 +10,16 @@ calc_parcel_size <- function(layer) {
     summarise() %>%
     st_cast("MULTIPOLYGON") %>%
     st_cast("POLYGON") %>%
-    ungroup() %>%
+    ungroup()
 
-    # Calculate median perceel area by point
-    mutate(area = st_area(geometry)) %>%
-    st_drop_geometry() %>%
-    group_by(REF_ID) %>%
-    summarise(perceel_median_area = units::drop_units(median(area)),
-              perceel_iqr_area = IQR(area),
-              perceel_cv_area = perceel_iqr_area / perceel_median_area,
-              .groups = "drop")
+  out_sf <- parcels_grouped %>%
+    # Give new IDs
+    rownames_to_column(var = "ID") %>%
 
-  return(do.call(rbind.data.frame, out_list))
+    # Calculate area
+    mutate(area_m2 = st_area(geometry),
+           area_m2 = units::drop_units(area_m2),
+           area_ha = area_m2 / 10000)
+
+  return(out_sf)
 }
