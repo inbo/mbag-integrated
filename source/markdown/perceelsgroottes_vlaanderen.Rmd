@@ -22,14 +22,15 @@ opts_chunk$set(
   warning = FALSE)
 opts_knit$set(root.dir = here())
 
-conflicted::conflicts_prefer(dplyr::filter)
-conflicted::conflicts_prefer(dplyr::select)
-
 # Packages
 library(tidyverse)
 library(INBOtheme)
 library(sf)
 library(mapview)
+
+conflicted::conflicts_prefer(dplyr::filter)
+conflicted::conflicts_prefer(dplyr::select)
+conflicted::conflicts_prefer(dplyr::lag)
 
 # Source
 source(here("source", "R", "calc_parcel_size.R"))
