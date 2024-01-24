@@ -43,7 +43,8 @@ Met 'feitelijke' percelen bedoelen we dat aangrenzende percelen met hetzelfde ge
 # Kaartlagen
 
 Kaartlagen van landbouwgebruikspercelen zijn gedownload via [landbouwcijfers.vlaanderen.be](https://landbouwcijfers.vlaanderen.be/open-geodata-landbouwgebruikspercelen).
-We zullen zowel berekeningen doen o.b.v. de kaart van 2022 als de kaart van 2023 omdat de kaart van 2023 nog niet finaal is en dus nog fouten kan bevatten (extractie 04-12-2023).
+We zullen zowel berekeningen doen o.b.v. de kaarten van 2022 en 2023.
+De kaart van 2023 is nog niet finaal is kan dus nog fouten kan bevatten (extractie 04-12-2023).
 
 
 ```{r}
@@ -107,6 +108,9 @@ mapview(test_layer_grouped, zcol = "GWSNAM_H", legend = FALSE)
 # Berekening perceelsgroottes en statistieken
 ## Vlaanderen
 
-```{r}
-parcel_stats <- calc_parcel_size(test_layer)
+```{r, cache=TRUE}
+parcels_grouped_2022 <- calc_parcel_size(lbg_layer_2022) %>%
+  mutate(jaar = 2022)
+parcels_grouped_2023 <- calc_parcel_size(lbg_layer_2023) %>%
+  mutate(jaar = 2023)
 ```
