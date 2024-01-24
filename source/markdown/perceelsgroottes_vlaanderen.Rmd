@@ -140,39 +140,73 @@ if (file.exists(file)) {
     year <- unique(sf$jaar)
     
     print(paste("Start samenvoegen percelen", year))
-    calc_parcel_size(sf) %>%
+    out <- calc_parcel_size(sf) %>%
       mutate(jaar = year)
     print(paste("Einde samenvoegen percelen", year))
+    
+    return(out)
     })
   
   saveRDS(parcels_grouped_list, file)
 }
 
 # List to one single dataframe
-parcels_grouped_df <- do.call(rbind.data.frame, parcels_grouped_list)
+parcels_grouped_list_nosf <- lapply(parcels_grouped_list, st_drop_geometry)
+parcels_grouped_df <- do.call(rbind.data.frame, parcels_grouped_list_nosf)
 ```
 
 De kaartlagen bevatten meerdere gewassen die in groepen zijn opgedeeld.
-Ter exploratie bekijken we de mediaan van de oppervlaktes per gewasgroep (in ha).
+Ter exploratie bekijken we de verdeling van de medianen van de oppervlaktes per gewasgroep per jaar (in ha).
 
 ```{r}
 parcels_grouped_df %>%
-  group_by(GWSGRPH_LB) %>%
+  group_by(GWSGRPH_LB, jaar) %>%
   summarise(area_ha = median(area_ha)) %>%
   ungroup() %>%
   mutate(GWSGRPH_LB = reorder(GWSGRPH_LB, area_ha)) %>%
   ggplot(aes(x = GWSGRPH_LB, y = area_ha)) +
     geom_boxplot() +
     labs(x = "",
-         y = "mediaan oppervlakte\n'feitelijke' percelen (ha)") +
+         y = paste0("mediaan oppervlakte\n'feitelijke' percelen ",
+                    min(years), "-", max(years), " (ha)")) +
+    scale_y_continuous(limits = c(0, NA)) +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
-Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar:
+We zien dat landbouwinfrastructuur en water elk jaar een lage gemiddelde perceelsgrootte hebben.
+Dit terwijl we wel zien dat er heel veel percelen onder de categorie "Landbouwinfrastructuur" vallen.
+Deze zal dus een grote invloed hebben op de uiteindelijke verdeling van de perceelsgroottes, terwijl we niet geïnteresseerd zijn in landbouwinfrastructuur.
+We zullen landbouwinfrastructuur verwijderen uit de dataset en water ook aangezien deze ook niet relevant is voor ons.
 
 ```{r}
 parcels_grouped_df %>%
-  st_drop_geometry() %>%
+  count(GWSGRPH_LB, jaar) %>%
+  group_by(jaar) %>%
+  mutate(som_jaar = sum(n)) %>%
+  ungroup() %>%
+  mutate(prop = n / som_jaar) %>%
+  group_by(GWSGRPH_LB) %>%
+  mutate(mean_prop = mean(prop)) %>%
+  ungroup() %>%
+  mutate(GWSGRPH_LB = reorder(GWSGRPH_LB, mean_prop)) %>%
+  ggplot(aes(x = GWSGRPH_LB, y = prop)) +
+    geom_boxplot() +
+    labs(x = "",
+         y = paste0("proportie aantal percelen\n",
+                   min(years), "-", max(years))) +
+    scale_y_continuous(limits = c(0, NA)) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))  
+```
+
+```{r}
+parcels_grouped_final <- parcels_grouped_df %>%
+  filter(!GWSGRPH_LB %in% c("Landbouwinfrastructuur", "Water"))
+```
+
+Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar in Vlaanderen:
+
+```{r}
+parcels_grouped_summary <- parcels_grouped_final %>%
   group_by(jaar) %>%
   summarise(
     min = min(area_ha),
@@ -188,8 +222,30 @@ parcels_grouped_df %>%
     max = max(area_ha),
     gemiddelde = mean(area_ha),
     st_dev = sd(area_ha)
-  ) %>% kable( digits = 3)
+  )
+
+parcels_grouped_summary %>%
+  kable( digits = 3)
 ```
 
-
-
+```{r}
+parcels_grouped_final %>%
+  group_by(jaar) %>%
+  summarise(
+    Q25 = quantile(area_ha, 0.25),
+    mediaan = quantile(area_ha, 0.5),
+    Q75 = quantile(area_ha, 0.75),
+    gemiddelde = mean(area_ha)) %>%
+  ungroup() %>%
+  pivot_longer(-jaar, names_to = "statistiek", values_to = "waarde") %>%
+  mutate(statistiek = factor(
+    statistiek,
+    levels = c("Q25", "mediaan", "gemiddelde", "Q75")
+    )) %>%
+  ggplot(aes(x = jaar, y  = waarde, colour = statistiek)) +
+    geom_point() +
+    geom_line() +
+    labs(x = "",
+         y = "perceelsgrootte (ha)") +
+    scale_y_continuous(limits = c(0, NA))
+```
