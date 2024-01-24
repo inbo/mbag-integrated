@@ -252,3 +252,81 @@ parcels_grouped_final %>%
 
 ## Soortbeschermingsgebieden
 
+We gebruiken de volgende kaartlagen:
+
+-   SBP akkervogels 2022
+-   De nieuwe (door INBO voorgestelde) perimeter voor SBP Grauwe kiekendief.
+-   De oude perimeter van SBP Grauwe kiekendief (in gebruik van 2018 t/m 2022).
+-   SPB's andere soorten (download 2023-02-14): <https://www.vlaanderen.be/datavindplaats/catalogus/soortenbeschermingsprogrammas>
+
+De kaartlagen bevinden zich in de MAS drive map onder layers \> perimeters SBPs
+
+Deze kaartlagen, behalve SBP akkervogels 2022, werden tot 1 bestand samengevoegd met volgende code:
+
+    layer1 <- st_read("C:/Users/ward_langeraert/Downloads/INBO.A.4291_bijlage1/Kerngebied_SBP_2_INBO.shp")
+    layer2 <- st_read("C:/Users/ward_langeraert/Downloads/INBO.A.4291_bijlage1/PM_SBP_2_INBO.shp")
+    layer3 <- st_read("C:/Users/ward_langeraert/Downloads/PMZ_Kernzone_Grauwe_kiek_sbp/lu_sbp_pgs.shp")
+    layer4 <- st_read("C:/Users/ward_langeraert/Downloads/lu_sbp_pgs/lu_sbp_pgs.shp")
+
+    layer12 <- bind_rows(layer1, layer2) %>% 
+      summarise() %>%
+      mutate(soort = "Grauwe kiekendief", 
+             gebied = "nieuw 2023") %>%
+      select(everything(), geometry)
+    layer123 <- bind_rows(layer12, layer3 %>% 
+                            filter(soort == "Grauwe kiekendief") %>%
+                            select(soort, gebied))
+
+    layer_sbp <- bind_rows(layer123, layer4 %>% 
+                             select(soort, gebied))
+
+    st_write(layer_sbp,
+             path_to_sbp_akkervogels("sbp_overige_soorten.shp"))
+
+We berekenen eerst perceelsgroottes voor elk soortbeschermingsgebied apart.
+
+```{r}
+sbp_overig <- 
+  st_read(file.path("data", "bo_vlm", "sbp_overige_soorten.shp"), 
+          quiet = TRUE) %>%
+  mutate(soort = ifelse(soort == "Grauwe kiekendief" & gebied == "nieuw 2023", 
+                        "Grauwe kiekendief 2023", soort)) %>%
+  select(soort) %>%
+  st_transform(crs = 31370)
+
+sbp_akkervogels <- 
+  st_read(file.path("data", "bo_vlm", "akkervogelgebieden2022.shp"),
+          quiet = TRUE) %>%
+  mutate(soort = "akkervogels2022") %>%
+  select(soort) %>%
+  st_transform(crs = 31370)
+
+sbp_total <- bind_rows(sbp_overig, sbp_akkervogels)
+
+mapview(sbp_total, zcol = "soort", layer = "soort(engroep)")
+```
+
+...
+
+We berekenen ook de perceelsgroottes voor akkergerelateerde soortbeschermingsgebiedlagen samen.
+Als soortbeschermingsgebiedlagen voor akkergebieden gebruiken we perimeter SBP akkervogels, SBP grauwe kiekendief, SBP bruine kiekendief, SBP zomertortel en SBP hamster.
+
+```{r}
+sbp_akker_sep <- sbp_total %>%
+  filter(soort %in% c("akkervogels2022", "Hamster", "Bruine kiekendief",
+                      "Grauwe kiekendief", "Grauwe kiekendief 2023",
+                      "Zomertortel"))
+
+mapview(sbp_akker_sep, zcol = "soort", layer = "soort(engroep)")
+```
+
+We nemen deze gebieden samen tot 1 laag.
+
+```{r}
+sbp_akker_union <- sbp_akker_sep %>%
+  summarise()
+
+mapview(sbp_akker_union)
+```
+
+...
