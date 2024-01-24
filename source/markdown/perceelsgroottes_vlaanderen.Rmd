@@ -41,5 +41,9 @@ Met 'feitelijke' percelen bedoelen we dat aangrenzende percelen met hetzelfde ge
 
 # Kaartlagen
 
+Kaartlagen van landbouwgebruikspercelen zijn gedownload via [landbouwcijfers.vlaanderen.be](https://landbouwcijfers.vlaanderen.be/open-geodata-landbouwgebruikspercelen).
+We zullen zowel berekeningen doen o.b.v. de kaart van 2022 als de kaart van 2023 omdat de kaart van 2023 nog niet finaal is en dus nog fouten kan bevatten (extractie 04-12-2023).
 
 # Berekening perceelsgroottes en statistieken
+
+
