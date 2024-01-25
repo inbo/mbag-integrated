@@ -123,7 +123,6 @@ test_layer_grouped <- test_layer %>%
 mapview(test_layer_grouped, zcol = "GWSNAM_H", legend = FALSE)
 ```
 
-
 # Berekening perceelsgroottes en statistieken
 ## Vlaanderen
 
@@ -157,6 +156,15 @@ parcels_grouped_df <- do.call(rbind.data.frame, parcels_grouped_list_nosf)
 ```
 
 De kaartlagen bevatten meerdere gewassen die in groepen zijn opgedeeld.
+Dit zijn de categorieën die aanwezig zijn.
+
+```{r}
+parcels_grouped_df %>%
+  distinct(GWSGRPH_LB, GWSNAM_H) %>%
+  arrange(GWSGRPH_LB, GWSNAM_H) %>%
+  kable()
+```
+
 Ter exploratie bekijken we de verdeling van de medianen van de oppervlaktes per gewasgroep per jaar (in ha).
 
 ```{r}
@@ -177,7 +185,7 @@ parcels_grouped_df %>%
 We zien dat landbouwinfrastructuur en water elk jaar een lage gemiddelde perceelsgrootte hebben.
 Dit terwijl we wel zien dat er heel veel percelen onder de categorie "Landbouwinfrastructuur" vallen.
 Deze zal dus een grote invloed hebben op de uiteindelijke verdeling van de perceelsgroottes, terwijl we niet geïnteresseerd zijn in landbouwinfrastructuur.
-We zullen landbouwinfrastructuur verwijderen uit de dataset en water ook aangezien deze ook niet relevant is voor ons.
+We zullen landbouwinfrastructuur verwijderen uit de dataset.
 
 ```{r}
 parcels_grouped_df %>%
@@ -199,9 +207,73 @@ parcels_grouped_df %>%
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
+Ook verwijderen we "Water" en de volgende lagen aangezien deze niet relevant zijn voor ons (dit zijn voornamelijk natuurgebieden). We visualiseren dit aan de hand van de originele kaartlaag van 2022.
+
+Houtachtige gewassen: Bos\\
+Houtachtige gewassen: Heide in natuurbeheer
+
+```{r}
+houtachtige_natuurgebieden <- layer_list[["2022"]] %>%
+  filter(
+    GWSNAM_H %in% c("Heide in natuurbeheer", "Bos")
+  )
+
+mapview(houtachtige_natuurgebieden, zcol = "GWSNAM_H", layer = "GWSNAM_H")
+```
+
+Overige gewassen: Braakliggend land zonder minimale activiteit\\
+Overige gewassen: Braakliggend land met minimale activiteit met EAG\\
+Overige gewassen: Braakliggend land met minimale activiteit zonder EAG
+
+```{r}
+braakliggende_gebieden <- layer_list[["2022"]] %>%
+  filter(
+    grepl("^Braakliggend", GWSNAM_H)
+  )
+
+mapview(braakliggende_gebieden, zcol = "GWSNAM_H", layer = "GWSNAM_H")
+```
+
+Overige gewassen: Begraasde niet-landbouwgrond
+
+```{r}
+niet_landbouw_grond <- layer_list[["2022"]] %>%
+  filter(
+    GWSNAM_H == "Begraasde niet-landbouwgrond"
+  )
+
+mapview(niet_landbouw_grond, zcol = "GWSNAM_H", layer = "GWSNAM_H")
+```
+
+Grasland: Natuurlijk grasland met minimumactiviteit\\
+Grasland: Natuurlijk grasland zonder minimumactiviteit\\
+Grasland: Natuurlijk grasland met onderhoud\\
+Grasland: Natuurlijk grasland zonder onderhoud
+
+(de term minimumactiviteit wordt gebruikt in kaarten voor 2023, de term onderhoud in de kaart van 2023)
+
+```{r}
+grasland_natuur <- layer_list[["2022"]] %>%
+  filter(
+    grepl("^Natuurlijk grasland", GWSNAM_H)
+  )
+
+mapview(grasland_natuur, zcol = "GWSNAM_H")
+```
+
+Ten slotte kiezen we voor een "minimal mapping unit" van 0.04 ha zoals bij BWK karteringen.
+Dit wil zeggen dat we percelen kleiner dan 0.04 ha ook verwijderen.
+
 ```{r}
 parcels_grouped_final <- parcels_grouped_df %>%
-  filter(!GWSGRPH_LB %in% c("Landbouwinfrastructuur", "Water"))
+  filter(!GWSGRPH_LB %in% c("Landbouwinfrastructuur", "Water") ,
+         !GWSNAM_H %in% c("Heide in natuurbeheer", "Bos",
+                          "Begraasde niet-landbouwgrond",
+                          "Natuurlijk grasland met minimumactiviteit",
+                          "Natuurlijk grasland zonder minimumactiviteit"),
+         !grepl("^Braakliggend", GWSNAM_H),
+         !grepl("^Natuurlijk grasland", GWSNAM_H)) %>%
+  filter(area_ha >= 0.04)
 ```
 
 Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar in Vlaanderen:
