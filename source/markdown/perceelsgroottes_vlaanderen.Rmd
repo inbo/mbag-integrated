@@ -209,7 +209,8 @@ parcels_grouped_df %>%
 
 Ook verwijderen we "Water" en de volgende lagen aangezien deze niet relevant zijn voor ons (dit zijn voornamelijk natuurgebieden). We visualiseren dit aan de hand van de originele kaartlaag van 2022.
 
-Houtachtige gewassen: Bos\\
+Houtachtige gewassen: Bos
+
 Houtachtige gewassen: Heide in natuurbeheer
 
 ```{r}
@@ -221,8 +222,10 @@ houtachtige_natuurgebieden <- layer_list[["2022"]] %>%
 mapview(houtachtige_natuurgebieden, zcol = "GWSNAM_H", layer = "GWSNAM_H")
 ```
 
-Overige gewassen: Braakliggend land zonder minimale activiteit\\
-Overige gewassen: Braakliggend land met minimale activiteit met EAG\\
+Overige gewassen: Braakliggend land zonder minimale activiteit
+
+Overige gewassen: Braakliggend land met minimale activiteit met EAG
+
 Overige gewassen: Braakliggend land met minimale activiteit zonder EAG
 
 ```{r}
@@ -245,9 +248,12 @@ niet_landbouw_grond <- layer_list[["2022"]] %>%
 mapview(niet_landbouw_grond, zcol = "GWSNAM_H", layer = "GWSNAM_H")
 ```
 
-Grasland: Natuurlijk grasland met minimumactiviteit\\
-Grasland: Natuurlijk grasland zonder minimumactiviteit\\
-Grasland: Natuurlijk grasland met onderhoud\\
+Grasland: Natuurlijk grasland met minimumactiviteit
+
+Grasland: Natuurlijk grasland zonder minimumactiviteit
+
+Grasland: Natuurlijk grasland met onderhoud
+
 Grasland: Natuurlijk grasland zonder onderhoud
 
 (de term minimumactiviteit wordt gebruikt in kaarten voor 2023, de term onderhoud in de kaart van 2023)
@@ -266,7 +272,7 @@ Dit wil zeggen dat we percelen kleiner dan 0.04 ha ook verwijderen.
 
 ```{r}
 parcels_grouped_final <- parcels_grouped_df %>%
-  filter(!GWSGRPH_LB %in% c("Landbouwinfrastructuur", "Water") ,
+  filter(!GWSGRPH_LB %in% c("Landbouwinfrastructuur", "Water"),
          !GWSNAM_H %in% c("Heide in natuurbeheer", "Bos",
                           "Begraasde niet-landbouwgrond",
                           "Natuurlijk grasland met minimumactiviteit",
