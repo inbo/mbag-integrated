@@ -28,10 +28,15 @@ library(INBOtheme)
 library(sf)
 library(mapview)
 library(qgisprocess)
+library(DT)
 
 conflicted::conflicts_prefer(dplyr::filter)
 conflicted::conflicts_prefer(dplyr::select)
 conflicted::conflicts_prefer(dplyr::lag)
+
+mapviewOptions(basemaps = c("OpenStreetMap",
+                            "Esri.WorldImagery",
+                            "CartoDB.Positron"))
 
 # Source
 source(here("source", "scripts", "calc_parcel_size.R"))
@@ -163,7 +168,7 @@ Dit zijn de categorieën die aanwezig zijn.
 parcels_grouped_df %>%
   distinct(GWSGRPH_LB, GWSNAM_H) %>%
   arrange(GWSGRPH_LB, GWSNAM_H) %>%
-  kable()
+  datatable()
 ```
 
 Ter exploratie bekijken we de verdeling van de medianen van de oppervlaktes per gewasgroep per jaar (in ha).
