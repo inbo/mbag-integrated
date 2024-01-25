@@ -125,6 +125,7 @@ mapview(test_layer_grouped, zcol = "GWSNAM_H", legend = FALSE)
 
 # Berekening perceelsgroottes en statistieken
 ## Vlaanderen
+### Berekeningen
 
 ```{r}
 # Create cache directory
@@ -282,6 +283,8 @@ parcels_grouped_final <- parcels_grouped_df %>%
   filter(area_ha >= 0.04)
 ```
 
+### Resultaten
+
 Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar in Vlaanderen:
 
 ```{r}
@@ -332,6 +335,7 @@ parcels_grouped_final %>%
 ```
 
 ## Soortbeschermingsgebieden
+### Berekeningen
 
 We gebruiken de volgende kaartlagen:
 
@@ -438,8 +442,7 @@ out_list_sbp_nosf <- lapply(out_list_sbp, st_drop_geometry)
 sbp_parcel_df <- do.call(rbind.data.frame, out_list_sbp_nosf)
 ```
 
-... toon voorbeeld voor klein gebied
-... toon tabel zoals eerder:
+### Resultaten
 
 Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar voor percelen die overlappen met SBP's:
 
