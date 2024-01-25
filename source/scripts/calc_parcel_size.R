@@ -1,6 +1,6 @@
 calc_parcel_size <- function(layer) {
-  require("dplyr")
-  require("sf")
+  require(dplyr)
+  require(sf)
 
   parcels_grouped <- layer %>%
     filter(!is.na(.data$GWSNAM_H)) %>%
