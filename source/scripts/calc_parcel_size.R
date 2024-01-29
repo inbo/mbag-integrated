@@ -1,4 +1,6 @@
 calc_parcel_size <- function(layer) {
+  stopifnot(requireNamespace("dplyr", quietly = TRUE))
+  stopifnot(requireNamespace("sf", quietly = TRUE))
   require("dplyr")
   require("sf")
 

@@ -44,8 +44,8 @@ source(here("source", "scripts", "calc_parcel_size.R"))
 
 # Vraag
 
-We willen een idee van de decielen, mediaan, gemiddelde ... van de 'feitelijke' perceelsgrootte voor akkers (incl. tijdelijk gras) in Vlaanderen en binnen de soortbeschermingsgebieden.
-Met 'feitelijke' percelen bedoelen we dat aangrenzende percelen met hetzelfde gewas als één perceel tellen.
+We willen een idee van de decielen, mediaan, gemiddelde ... van de "feitelijke" perceelsgrootte voor akkers (incl. tijdelijk gras) in Vlaanderen en binnen de soortbeschermingsgebieden.
+Met "feitelijke" percelen bedoelen we dat aangrenzende percelen met hetzelfde gewas als één perceel tellen.
 
 # Kaartlagen
 
@@ -53,7 +53,7 @@ Met 'feitelijke' percelen bedoelen we dat aangrenzende percelen met hetzelfde ge
 years <- 2018:2023
 ```
 
-Kaartlagen van landbouwgebruikspercelen zijn gedownload via [landbouwcijfers.vlaanderen.be](https://landbouwcijfers.vlaanderen.be/open-geodata-landbouwgebruikspercelen).
+Kaartlagen van landbouwgebruikspercelen zijn gedownload via [Vlaamse landbouw en visserij in cijfers](https://landbouwcijfers.vlaanderen.be/open-geodata-landbouwgebruikspercelen).
 We zullen berekeningen doen o.b.v. de kaarten van `r min(years)` t/m `r max(years)`.
 De kaart van 2023 is nog niet finaal is kan dus nog fouten kan bevatten (extractie 04-12-2023).
 
@@ -86,7 +86,7 @@ for (i in seq_along(years)) {
 names(layer_list) <- years
 ```
 
-Onderstaand voorbeeld toont hoe we van percelen naar 'feitelijke' percelen gaan.
+Onderstaand voorbeeld toont hoe we van percelen naar "feitelijke" percelen gaan.
 We selecteren een detail van de kaart van 2022.
 
 ```{r}
@@ -181,9 +181,8 @@ parcels_grouped_df %>%
   mutate(GWSGRPH_LB = reorder(GWSGRPH_LB, area_ha)) %>%
   ggplot(aes(x = GWSGRPH_LB, y = area_ha)) +
     geom_boxplot() +
-    labs(x = "",
-         y = paste0("mediaan oppervlakte\n'feitelijke' percelen ",
-                    min(years), "-", max(years), " (ha)")) +
+    labs(x = "", y = paste0("mediaan oppervlakte\nfeitelijke percelen ",
+                            min(years), "-", max(years), " (ha)")) +
     scale_y_continuous(limits = c(0, NA)) +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
@@ -290,7 +289,7 @@ parcels_grouped_final <- parcels_grouped_df %>%
 
 ### Resultaten
 
-Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar in Vlaanderen:
+Samenvattende statistieken voor de "feitelijke" perceelsgroottes per jaar in Vlaanderen:
 
 ```{r}
 parcels_grouped_summary <- parcels_grouped_final %>%
@@ -457,7 +456,7 @@ sbp_parcel_df <- do.call(rbind.data.frame, out_list_sbp_nosf)
 
 ### Resultaten
 
-Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar voor percelen die overlappen met SBP's:
+Samenvattende statistieken voor de "feitelijke" perceelsgroottes per jaar voor percelen die overlappen met SBP's:
 
 ```{r}
 sbp_parcel_summary <- sbp_parcel_df %>%
@@ -533,7 +532,7 @@ sbp_akker_union <- sbp_akker_sep %>%
 mapview(sbp_akker_union)
 ```
 
-Samenvattende statistieken voor de 'feitelijke' perceelsgroottes per jaar voor percelen die overlappen met akker SBP's:
+Samenvattende statistieken voor de "feitelijke" perceelsgroottes per jaar voor percelen die overlappen met akker SBP's:
 
 ```{r}
 sbp_parcel_akker_summary <- sbp_parcel_df  %>%
@@ -567,21 +566,21 @@ sbp_parcel_akker_summary %>%
 
 # Samenvatting
 
-Samenvattende statistieken 'feitelijke' perceelsgroottes Vlaanderen voor `r min(years)` - `r max(years)`:
+Samenvattende statistieken "feitelijke" perceelsgroottes Vlaanderen voor `r min(years)` - `r max(years)`:
 
 ```{r}
 parcels_grouped_summary %>%
   kable(digits = 3)
 ```
 
-Samenvattende statistieken 'feitelijke' perceelsgroottes soortbeschermingsgebieden voor 2022-2023:
+Samenvattende statistieken "feitelijke" perceelsgroottes soortbeschermingsgebieden voor 2022-2023:
 
 ```{r}
 sbp_parcel_summary %>%
   kable(digits = 3)
 ```
 
-Samenvattende statistieken 'feitelijke' perceelsgroottes akkergerelateerde soortbeschermingsgebieden samengenomen voor 2022-2023:
+Samenvattende statistieken "feitelijke" perceelsgroottes akkergerelateerde soortbeschermingsgebieden samengenomen voor 2022-2023:
 
 ```{r}
 sbp_parcel_akker_summary %>%
