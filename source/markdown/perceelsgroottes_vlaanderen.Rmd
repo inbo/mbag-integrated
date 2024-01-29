@@ -402,7 +402,15 @@ mapview(sbp_total, zcol = "soort", layer = "soort(engroep)")
 # Select parcel layers 2022-2023
 parcels_grouped_sf <- bind_rows(parcels_grouped_list[["2022"]],
                                 parcels_grouped_list[["2023"]]) %>%
-  mutate(ID = paste(ID, jaar, sep = "_"))
+  mutate(ID = paste(ID, jaar, sep = "_")) %>%
+  filter(!GWSGRPH_LB %in% c("Landbouwinfrastructuur", "Water"),
+         !GWSNAM_H %in% c("Heide in natuurbeheer", "Bos",
+                          "Begraasde niet-landbouwgrond",
+                          "Natuurlijk grasland met minimumactiviteit",
+                          "Natuurlijk grasland zonder minimumactiviteit"),
+         !grepl("^Braakliggend", GWSNAM_H),
+         !grepl("^Natuurlijk grasland", GWSNAM_H)) %>%
+  filter(area_ha >= 0.04)
 
 # Make intersection between parcels and SBP layer
 file_out_list_sbp <- file.path(cache_path, "out_list_sbp.rds")
